@@ -5,7 +5,7 @@ def is_weekday(date_str):
     return datetime.strptime(date_str, "%Y-%m-%d").weekday() < 5  # weekday < 5 means Mon–Fri
 
 # 讀取基本交通資料
-auto_df = pd.read_csv("./ori_dataset/Automated_Traffic_Volume_Counts.csv")
+auto_df = pd.read_csv("/home/weichen/AI/project/dataset/Automated_Traffic_Volume_Counts.csv")
 
 # 建立 total dataset
 total = pd.DataFrame(columns=[
@@ -49,7 +49,7 @@ total = pd.DataFrame(records)
 # 將 Date 轉為 datetime
 total["Date"] = pd.to_datetime(total["Date"])
 # --- 處理 nyc_traffic.csv 資料並加入 total ---
-nyc_traffic = pd.read_csv("./ori_dataset/Traffic_Volume_Counts.csv")
+nyc_traffic = pd.read_csv("/home/weichen/AI/project/dataset/Traffic_Volume_Counts.csv")
 
 # 時間欄位對應表（對應 Hour 數值）
 hour_columns = [
@@ -119,7 +119,7 @@ total["Date"] = pd.to_datetime(total["Date"])
 total = total.sort_values(by=["street", "Date", "Hour"], ascending=[True, True, True]).reset_index(drop=True)
 
 # --- 加入天氣資料 ---
-weather_df = pd.read_csv("./ori_dataset/NYC_Weather_2016_2022.csv")
+weather_df = pd.read_csv("/home/weichen/AI/project/dataset/NYC_Weather_2016_2022.csv")
 
 # 將 weather 中的時間轉為 datetime 格式，保留到小時
 weather_df["time"] = pd.to_datetime(weather_df["time"]).dt.floor("h")
@@ -141,7 +141,7 @@ total["DateTime"] = total.apply(lambda row: pd.Timestamp(row["Date"]) + pd.to_ti
 total = total.merge(weather_df, how="left", left_on="DateTime", right_on="time").drop(columns=["time"])
 
 # --- 加入 Pedestrian demand ---
-demand_df = pd.read_csv("./ori_dataset/Pedestrian_Mobility_Plan_Pedestrian_Demand.csv")
+demand_df = pd.read_csv("/home/weichen/AI/project/dataset/Pedestrian_Mobility_Plan_Pedestrian_Demand.csv")
 
 # 將 demand_df 中的街道與行政區轉大寫以利比對
 demand_df["street"] = demand_df["street"].astype(str).str.upper()
@@ -164,7 +164,7 @@ total["demand"] = total["avg_demand"].round().fillna(5).astype(int)
 total = total.drop(columns=["avg_demand"])
 
 # --- 加入空氣品質（使用 date 與 pm25 欄位）---
-air_df = pd.read_csv("./ori_dataset/new-york-air-quality.csv", header=None)
+air_df = pd.read_csv("/home/weichen/AI/project/dataset/new-york-air-quality.csv", header=None)
 
 # 指定欄位名稱
 air_df.columns = ["date", "pm25", "col3", "col4", "col5"]
@@ -227,6 +227,8 @@ values_over_720 = counts[counts >= 720].index
 
 filtered_df = total[total["street"].isin(values_over_720)]
 
+# 移除特定日期的資料
+filtered_df = filtered_df[~filtered_df["Date"].isin(["2017-01-28", "2017-09-06", "2017-09-07", "2017-09-08"])]
 
 # --- 儲存成 CSV ---
 filtered_df.to_csv("total_dataset_final.csv", index=False)
