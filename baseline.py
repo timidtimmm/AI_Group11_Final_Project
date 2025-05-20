@@ -39,10 +39,10 @@ for street, group in df.groupby('street'):
 
     # 指標
     r2 = r2_score(y_test, y_pred)
-    mse = mean_squared_error(y_test, y_pred)
+    rmse = mean_squared_error(y_test, y_pred) ** 0.5
     mae = mean_absolute_error(y_test, y_pred)
 
-    results.append((street, r2, mse, mae))
+    results.append((street, r2, rmse, mae))
 
 # 儲存結果
-pd.DataFrame(results, columns=["Street", "R2", "MSE", "MAE"]).to_csv("linear_regression_result.csv", index = False)
+pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("linear_regression_result.csv", index = False)
