@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error, r2_score
 import random
-
+import os
 # Reproducibility 
 SEED = 42
 torch.manual_seed(SEED)
@@ -82,7 +82,7 @@ def prepare_dataloader(data, n_past, batch_size=64):
 # ======= Main per-street training =======
 def main():
     #load and preprocess dataset
-    df = pd.read_csv('/home/weichen/AI/project/code/total_dataset_final.csv')
+    df = pd.read_csv('/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv')
     df['Air_quality'] = pd.to_numeric(df['Air_quality'], errors='coerce').fillna(df['Air_quality'].mean())
     #convert string-based categorical columns into integers.
     categorical_cols = ['Boro', 'weekday', 'Direction', 'street']
@@ -128,7 +128,7 @@ def main():
         val_y_tensor = torch.tensor(val_y, dtype=torch.float32).unsqueeze(-1)
         
         #initialize the model
-        model = LSTMModel(input_size=len(features), hidden_size=64, num_layers=3, dropout=0.3)
+        model = LSTMModel(input_size=len(features), hidden_size=64, num_layers=3, dropout=0.1)
 
         #train the model
         print("Training...")
@@ -145,6 +145,7 @@ def main():
                 loss = criterion(output, yb)
                 loss.backward()
                 optimizer.step()
+            #print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
 
         #validation
         model.eval()
@@ -153,17 +154,21 @@ def main():
             val_labels = val_y_tensor.cpu().numpy()
             val_preds = scaler_y.inverse_transform(val_preds)
             val_labels = scaler_y.inverse_transform(val_labels)
-            val_mse = mean_squared_error(val_labels, val_preds)
+            val_rmse = root_mean_squared_error(val_labels, val_preds)
             val_mae = np.mean(np.abs(val_labels - val_preds))
+            val_r2 = r2_score(val_labels, val_preds)
 
-        print(f"Final Validation MSE: {val_mse:.4f}, MAE: {val_mae:.4f}")
-        results.append({'boro': boro, 'street': street, 'MSE': val_mse, 'MAE': val_mae})
-
+        print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
+        results.append({'boro': boro, 'street': street, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
+        #save the model
+        # Make sure the models directory exists
+        os.makedirs("models_group_historical", exist_ok=True)
+        torch.save(model.state_dict(), f"./models_group_historical/LSTM_model_{boro}_{street}.pth")
 
     # Save results to CSV
     results_df = pd.DataFrame(results)
-    results_df.to_csv("lstm_group_results_historical.csv", index=False)
-    print("\nResults saved to lstm_group_results_historical.csv")
+    results_df.to_csv("LSTM_group_results_historical.csv", index=False)
+    print("\nResults saved to LSTM_group_results_historical.csv")
 
 if __name__ == "__main__":
     main()
