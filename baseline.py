@@ -45,4 +45,4 @@ for street, group in df.groupby('street'):
     results.append((street, r2, rmse, mae))
 
 # 儲存結果
-pd.DataFrame(results, columns=["Street", "R2", "RMSE", "MAE"]).to_csv("linear_regression_result.csv", index = False)
+pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("linear_regression_result.csv", index = False)
