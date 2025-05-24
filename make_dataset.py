@@ -27,7 +27,7 @@ for _, row in auto_df.iterrows():
     if row['Yr'] == 2022 and row['M'] == 10 and row['D'] >= 20:
         continue
     weekday = "Y" if is_weekday(date) else "N"
-    
+    row['vol'] = row['vol'] * 4
     records.append({
         "ID": id_counter,
         "Boro": row["Boro"],
