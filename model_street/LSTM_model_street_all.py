@@ -7,6 +7,8 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import root_mean_squared_error, r2_score
 import random
 import os
+import joblib
+
 # Reproducibility 
 SEED = 42
 torch.manual_seed(SEED)
@@ -82,7 +84,7 @@ def prepare_dataloader(data, n_past, batch_size=64):
 # ======= Main per-street training =======
 def main():
     #load and preprocess dataset
-    df = pd.read_csv('/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv')
+    df = pd.read_csv('/home/weichen/AI/project/code/total_dataset_final.csv')
     df['Air_quality'] = pd.to_numeric(df['Air_quality'], errors='coerce').fillna(df['Air_quality'].mean())
     #convert string-based categorical columns into integers.
     categorical_cols = ['Boro', 'weekday', 'Direction', 'street']
@@ -114,7 +116,7 @@ def main():
         group_scaled = scaler.fit_transform(group_data)
         scaler_y = StandardScaler()
         group_scaled[:, -1:] = scaler_y.fit_transform(group_scaled[:, -1:])
-        
+        joblib.dump(scaler_y, f"./models_street_all/scaler_y_{street}.pkl")
         #80% training, 20% validation
         train_size = int(0.8 * len(group_scaled))
         train_data = group_scaled[:train_size]
