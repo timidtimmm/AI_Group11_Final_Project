@@ -10,12 +10,11 @@ import random
 import os
 import joblib
 
-# Reproducibility 
 SEED = 42
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 random.seed(SEED)
-# ======= Manual LSTM =======
+#LSTM cell
 class LSTMcell(nn.Module):
     def __init__(self, input_size, hidden_size):
         super().__init__()
@@ -32,7 +31,7 @@ class LSTMcell(nn.Module):
         c = f_gate * c_prev + i_gate * g_gate       #cell state : c = f 。 c_prev + i 。 g
         h = o_gate * torch.tanh(c)                  #hidden state: taking the element-wise product of the output gate and the cell state
         return h, c                                 #pass to next cell
-
+#LSTM Model
 class LSTMModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1, dropout=0.0):
         super().__init__()
@@ -72,10 +71,10 @@ def create_sequences(X, y, n_past):
         y_seq.append(y[i])
     return np.array(X_seq), np.array(y_seq)
 
-# ======= Main per-street training =======
+#training by grouping with (street) and using all the features
 def main():
     #load and preprocess dataset
-    df = pd.read_csv('/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv')
+    df = pd.read_csv('total_dataset_final.csv')
     df['Air_quality'] = pd.to_numeric(df['Air_quality'], errors='coerce').fillna(df['Air_quality'].mean())
     #convert string-based categorical columns into integers.
     categorical_cols = ['Boro', 'weekday', 'Direction', 'street']
@@ -108,9 +107,9 @@ def main():
     for name, group in grouped:                     #train group by group
         #boro_code, street_code = name.split('_')
         #boro = encoders['Boro'].inverse_transform([int(boro_code)])[0]          #original borough name
-        street = encoders['street'].inverse_transform([int(name)])[0]    #original street name
+        street_name = encoders['street'].inverse_transform([int(name)])[0]    #original street name
         print(f"\n=== Training for group: {name} ===")
-        print(f"  Street: {street} ")
+        print(f"  Street: {street_name} ")
         X_group = group[features].values
         y_group = group['volumn'].values.reshape(-1, 1)
         X_seq, y_seq = create_sequences(X_group, y_group, n_past)
@@ -155,19 +154,19 @@ def main():
             val_r2 = r2_score(y_true, y_pred)
 
         print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
-        results.append({'street': street, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
+        results.append({'street': street_name, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
         #save the model
-        # Make sure the models directory exists
-        os.makedirs("models_street_all", exist_ok=True)
-        torch.save(model.state_dict(), f"./models_street_all/LSTM_model_{street}.pth")
-        joblib.dump(scaler, f"./models_street_all/scaler_x_{street}.pkl")
-        joblib.dump(target_scaler, f"./models_street_all/scaler_y_{street}.pkl")
+        #make sure the models directory exists and store the model and scaler values
+        os.makedirs("./model_street/models_street_all", exist_ok=True)
+        torch.save(model.state_dict(), f"./model_street/models_street_all/LSTM_model_{street_name}.pth")
+        joblib.dump(scaler, f"./model_street/models_street_all/scaler_x_{street_name}.pkl")
+        joblib.dump(target_scaler, f"./model_street/models_street_all/scaler_y_{street_name}.pkl")
 
 
 
     # Save results to CSV
     results_df = pd.DataFrame(results)
-    results_df.to_csv("LSTM_street_results_all.csv", index=False)
+    results_df.to_csv("./model_street/LSTM_street_results_all.csv", index=False)
     print("\nResults saved to LSTM_street_results_all.csv")
 
 if __name__ == "__main__":

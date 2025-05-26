@@ -3,17 +3,19 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import root_mean_squared_error, r2_score
 import random
 import os
-# Reproducibility 
+import joblib
+
 SEED = 42
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 random.seed(SEED)
 
-# ======= Manual LSTM =======
+#LSTM cell
 class LSTMcell(nn.Module):
     def __init__(self, input_size, hidden_size):
         super().__init__()
@@ -30,7 +32,7 @@ class LSTMcell(nn.Module):
         c = f_gate * c_prev + i_gate * g_gate       #cell state : c = f 。 c_prev + i 。 g
         h = o_gate * torch.tanh(c)                  #hidden state: taking the element-wise product of the output gate and the cell state
         return h, c                                 #pass to next cell
-
+#LSTM model
 class LSTMModel(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1, dropout=0.0):
         super().__init__()
@@ -63,26 +65,17 @@ class LSTMModel(nn.Module):
 
         return self.fc(h[-1])
 
-def create_sequences(data, n_past):             #create sequences for LSTM, split data into sequences of length n_past
-    X, y = [], []
-    for i in range(n_past, len(data)):
-        X.append(data[i - n_past:i, :-1])
-        y.append(data[i, -1])
-    return np.array(X), np.array(y)             #convert a time series into a supervised learning problem
+def create_sequences(X, y, n_past):
+    X_seq, y_seq = [], []
+    for i in range(n_past, len(X)):
+        X_seq.append(X[i-n_past:i])
+        y_seq.append(y[i])
+    return np.array(X_seq), np.array(y_seq)
 
-def prepare_dataloader(data, n_past, batch_size=64):
-    X, y = create_sequences(data, n_past)
-    if len(X) < 6:
-        return None, None, None
-    X_tensor = torch.tensor(X, dtype=torch.float32)
-    y_tensor = torch.tensor(y, dtype=torch.float32).unsqueeze(-1)
-    dataset = TensorDataset(X_tensor, y_tensor)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=True), X_tensor, y_tensor
-
-# ======= Main per-street training =======
+#training by grouping with (street) and using only demand data
 def main():
     #load and preprocess dataset
-    df = pd.read_csv('/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv')
+    df = pd.read_csv('total_dataset_final.csv')
     df['Air_quality'] = pd.to_numeric(df['Air_quality'], errors='coerce').fillna(df['Air_quality'].mean())
     #convert string-based categorical columns into integers.
     categorical_cols = ['Boro', 'weekday', 'Direction', 'street']
@@ -91,52 +84,55 @@ def main():
         df[col] = encoders[col].transform(df[col])
 
     features = ['Hour', 'demand']
-    target = 'volumn'
 
+    n_past = 6
+    X = df[features]
+    y = df['volumn']
+    #boro = df['Boro']
+    street = df['street']
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    target_scaler = StandardScaler()
+    y_scaled = target_scaler.fit_transform(y.values.reshape(-1, 1))
+
+    df = pd.DataFrame(X_scaled, columns=features)
+    df['volumn'] = y_scaled
+    #df['Boro'] = boro.values
+    df['street'] = street.values
     #df['Boro_street'] = df['Boro'].astype(str) + "_" + df['street'].astype(str)
     grouped = df.groupby('street')
+    results = []
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    n_past = 6
-    results = []
 
     for name, group in grouped:                     #train group by group
         #boro_code, street_code = name.split('_')
         #boro = encoders['Boro'].inverse_transform([int(boro_code)])[0]          #original borough name
-        street = encoders['street'].inverse_transform([int(name)])[0]    #original street name
-        print(f"\n=== Training for street: {street} ===")
-        #print(f"  Boro: {boro}, Street: {street}")
-        
-        if len(group) < n_past + 10:                #if the data is too small
+        street_name = encoders['street'].inverse_transform([int(name)])[0]    #original street name
+        print(f"\n=== Training for group: {name} ===")
+        print(f"  Street: {street_name} ")
+        X_group = group[features].values
+        y_group = group['volumn'].values.reshape(-1, 1)
+        X_seq, y_seq = create_sequences(X_group, y_group, n_past)
+        if len(X_seq) < 10:                #if the data is too small
             continue
-        #normalize the data
-        group_data = group[features + [target]].values
-        scaler = StandardScaler()
-        group_scaled = scaler.fit_transform(group_data)
-        scaler_y = StandardScaler()
-        group_scaled[:, -1:] = scaler_y.fit_transform(group_scaled[:, -1:])
-        
-        #80% training, 20% validation
-        train_size = int(0.8 * len(group_scaled))
-        train_data = group_scaled[:train_size]
-        val_data = group_scaled[train_size - n_past:]
-        
-        #create training sequences
-        train_loader, _, _ = prepare_dataloader(train_data, n_past)
-        val_X, val_y = create_sequences(val_data, n_past)
-        val_X_tensor = torch.tensor(val_X, dtype=torch.float32)
-        val_y_tensor = torch.tensor(val_y, dtype=torch.float32).unsqueeze(-1)
-        
+        X_train, X_test, y_train, y_test = train_test_split(X_seq, y_seq, test_size=0.2, random_state=42)
+
         #initialize the model
         model = LSTMModel(input_size=len(features), hidden_size=64, num_layers=3, dropout=0.1)
 
         #train the model
         print("Training...")
         model.to(device)
-        criterion = nn.MSELoss()
+        criterion = nn.MSELoss()  # Huber Loss
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-        for epoch in range(10):
+        train_loader = DataLoader(
+            TensorDataset(torch.tensor(X_train, dtype=torch.float32).to(device),
+                        torch.tensor(y_train, dtype=torch.float32).to(device)),
+            batch_size=64, shuffle=True
+        )
+        for epoch in range(20):
             model.train()
             for xb, yb in train_loader:
                 xb, yb = xb.to(device), yb.to(device)
@@ -150,24 +146,28 @@ def main():
         #validation
         model.eval()
         with torch.no_grad():
-            val_preds = model(val_X_tensor.to(device)).cpu().numpy()
-            val_labels = val_y_tensor.cpu().numpy()
-            val_preds = scaler_y.inverse_transform(val_preds)
-            val_labels = scaler_y.inverse_transform(val_labels)
-            val_rmse = root_mean_squared_error(val_labels, val_preds)
-            val_mae = np.mean(np.abs(val_labels - val_preds))
-            val_r2 = r2_score(val_labels, val_preds)
+            X_test_tensor = torch.tensor(X_test, dtype=torch.float32).to(device)
+            y_pred = model(X_test_tensor).detach().cpu().numpy().flatten()
+            y_pred = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+            y_true = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+            val_rmse = root_mean_squared_error(y_true, y_pred)
+            val_mae = np.mean(np.abs(y_true - y_pred))
+            val_r2 = r2_score(y_true, y_pred)
 
         print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
-        results.append({'street': street, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
+        results.append({'street': street_name, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
         #save the model
-        # Make sure the models directory exists
-        os.makedirs("models_street_demand", exist_ok=True)
-        torch.save(model.state_dict(), f"./models_street_demand/LSTM_model_{street}.pth")
+        #make sure the models directory exists and store the model and scaler values
+        os.makedirs("./model_street/models_street_demand", exist_ok=True)
+        torch.save(model.state_dict(), f"./model_street/models_street_demand/LSTM_model_{street_name}.pth")
+        joblib.dump(scaler, f"./model_street/models_street_demand/scaler_x_{street_name}.pkl")
+        joblib.dump(target_scaler, f"./model_street/models_street_demand/scaler_y_{street_name}.pkl")
+
+
 
     # Save results to CSV
     results_df = pd.DataFrame(results)
-    results_df.to_csv("LSTM_street_results_demand.csv", index=False)
+    results_df.to_csv("./model_street/LSTM_street_results_demand.csv", index=False)
     print("\nResults saved to LSTM_street_results_demand.csv")
 
 if __name__ == "__main__":
