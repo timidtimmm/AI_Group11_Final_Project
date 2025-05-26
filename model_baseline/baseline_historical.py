@@ -5,8 +5,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error
+import joblib
 
-df = pd.read_csv("/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv")
+df = pd.read_csv("total_dataset_final.csv")
 
 # 處理 weekday
 if 'weekday' in df.columns and df['weekday'].dtype == 'object':
@@ -43,5 +44,7 @@ for street, group in df.groupby('street'):
 
     results.append((street, r2, rmse, mae))
 
+    joblib.dump(model, f"model_baseline/models_baseline_historical/{street}.pth")
+
 # 儲存結果
-pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("linear_regression_result_historical.csv", index = False)
+pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("model_baseline/linear_regression_result_historical.csv", index = False)
