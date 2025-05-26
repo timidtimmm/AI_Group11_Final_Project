@@ -75,7 +75,10 @@ def create_sequences(X, y, n_past):
 
 def main():
     # Load and preprocess dataset
-    df = pd.read_csv('/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(base_dir)
+    csv_path = os.path.join(project_root, 'total_dataset_final.csv')
+    df = pd.read_csv(csv_path)
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
     categorical_cols = ['Boro', 'weekday', 'Direction', 'street']
@@ -137,8 +140,8 @@ def main():
     #save the model
     #Make sure the models directory exists
     os.makedirs("model_global_demand", exist_ok=True)
-    torch.save(model.state_dict(), f"./model_global_demand/LSTM_model_global_demand.pth")
-    
+    save_dir = os.path.join(base_dir)
+    torch.save(model.state_dict(), os.path.join(save_dir, 'LSTM_model_global_demand.pth'))
     # Plot loss curve
     plt.figure()
     plt.plot(range(1, len(train_losses)+1), train_losses, marker='o')
@@ -163,7 +166,8 @@ def main():
         'True': y_true,
         'Predicted': y_pred
     })
-    pred_df.to_csv("LSTM_predictions_global_demand.csv", index=False)
+    pred_df = pd.DataFrame({'True': y_true, 'Predicted': y_pred})
+    pred_df.to_csv(os.path.join(save_dir, 'LSTM_predictions_global_demand.csv'), index=False)
     print("\nAll predictions saved to LSTM_predictions_global_demand.csv")
 
     print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
