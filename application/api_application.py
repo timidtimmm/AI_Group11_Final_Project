@@ -145,14 +145,14 @@ def main():
     print(f"\nPredicted traffic for street '{street_name}' for the next 6 hours:")
     for i in range(6):
         future_time = current_time + timedelta(hours=i)
-        hour = future_time.hour
+        hour = (future_time.hour + 12) % 24        #turn to NYC time
         weekday = 1 if future_time.weekday() < 5 else 0  # 'Y'->1, 'N'->0
 
         # Compose feature vector
         temperature, precipitation, rain, cloudcover, windspeed, air_quality, demand = api_features
         current_information = [hour, weekday, temperature, precipitation, rain, cloudcover, windspeed, air_quality, demand]
         current_information_df = pd.DataFrame([current_information], columns=features)
-        current_information_scaled = scaler_x.transform(current_information_df.values)
+        current_information_scaled = scaler_x.transform(current_information_df)
         # Prepare input for LSTM: shape [1, seq_len, features]
         n_past = 1
         input_seq = np.tile(current_information_scaled, (n_past, 1))  # shape (6, features)
