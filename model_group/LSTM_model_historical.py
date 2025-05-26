@@ -156,18 +156,18 @@ def main():
         print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
         results.append({'Boro': boro_name, 'street': street_name, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
         #save the model
-        # Make sure the models directory exists
-        os.makedirs("./model_group/models_group_weather", exist_ok=True)
-        torch.save(model.state_dict(), f"./model_group/models_group_weather/LSTM_model_{boro_name}_{street_name}.pth")
-        joblib.dump(scaler, f"./model_group/models_group_weather/scaler_x_{boro_name}_{street_name}.pkl")
-        joblib.dump(target_scaler, f"./model_group/models_group_weather/scaler_y_{boro_name}_{street_name}.pkl")
+        #make sure the models directory exists and store the model and the scaler values
+        os.makedirs("./model_group/models_group_historical", exist_ok=True)
+        torch.save(model.state_dict(), f"./model_group/models_group_historical/LSTM_model_{boro_name}_{street_name}.pth")
+        joblib.dump(scaler, f"./model_group/models_group_historical/scaler_x_{boro_name}_{street_name}.pkl")
+        joblib.dump(target_scaler, f"./model_group/models_group_historical/scaler_y_{boro_name}_{street_name}.pkl")
 
 
 
     # Save results to CSV
     results_df = pd.DataFrame(results)
-    results_df.to_csv("./model_group/LSTM_group_results_weather.csv", index=False)
-    print("\nResults saved to LSTM_group_results_weather.csv")
+    results_df.to_csv("./model_group/LSTM_group_results_historical.csv", index=False)
+    print("\nResults saved to LSTM_group_results_historical.csv")
 
 if __name__ == "__main__":
     main()
