@@ -55,8 +55,8 @@ class LSTMModel(torch.nn.Module):
                 x_t = self.dropout(h[layer])
         return self.fc(h[-1])
 
-def get_api_features(current_time):
-    '''headers = {
+def get_api_features(street_demand):
+    headers = {
         'User-Agent': 'MyWeatherApp/1.0 tt121892185@gmail.com'
     }
 
@@ -67,8 +67,8 @@ def get_api_features(current_time):
         data = response.json()
         forecast_current = data['properties']['periods'][0]
     else:
-        print("错误:", response.status_code)
-        print("错误信息:", response.text)
+        print("error code:", response.status_code)
+        print("error message:", response.text)
         return None
 
     # AirVisual API
@@ -79,8 +79,8 @@ def get_api_features(current_time):
         weather = data['data']['current']['weather']
         pollution = data['data']['current']['pollution']
     else:
-        print("错误:", response.status_code)
-        print("错误信息:", response.text)
+        print("error code:", response.status_code)
+        print("error message:", response.text)
         return None
 
     # Meteosource API
@@ -90,8 +90,8 @@ def get_api_features(current_time):
         cloud = response.json()
         cloud_coverage = cloud['current']["cloud_cover"]
     else:
-        print("错误:", response.status_code)
-        print("错误信息:", response.text)
+        print("error code:", response.status_code)
+        print("error message:", response.text)
         return None
 
     # Prepare input features (match training preprocessing)
@@ -101,22 +101,19 @@ def get_api_features(current_time):
     cloudcover = cloud_coverage
     windspeed = weather['wd']
     air_quality = pollution['aqius']
-    demand = 0  # If you have a way to estimate demand, set it here
+    demand = street_demand  # If you have a way to estimate demand, set it here
     
-    return temperature, precipitation, rain, cloudcover, windspeed, demand, air_quality'''
-    return 3.7, 0.0, 0.0, 32.0, 9.2, 37.0, 3
+    return temperature, precipitation, rain, cloudcover, windspeed, air_quality, demand
+    return 12, 2, 0, 16, 0, 17, np.int64(3)
 
 def main():
     # Load the dataset for encoders/scalers
-    df = pd.read_csv("/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv")
+    df = pd.read_csv("../total_dataset_final.csv")
     features = ['Hour', 'weekday', 'temperature', 'precipitation', 'rain', 'cloudcover', 'windspeed', 'Air_quality', 'demand']
-    # Convert 'weekday' column from 'Y'/'N' to 1/0
-    if 'weekday' in df.columns:
-        df['weekday'] = df['weekday'].map({'Y': 1, 'N': 0})
-    
+
     # User input for street name
     street_name = input("Enter the street name: ").strip().upper()
-    model_dir = "/home/weichen/AI/project/AI_Group11_Final_Project/model_street/models_street_all"
+    model_dir = "../model_street/models_street_all"
     model_path = os.path.join(model_dir, f"LSTM_model_{street_name}.pth")
     if not os.path.exists(model_path):
         print(f"Model for street '{street_name}' not found.")
@@ -133,7 +130,11 @@ def main():
     current_time = datetime.now()
 
     # Get API features (shared for all 6 hours for simplicity, or you can update per hour if you have hourly forecast)
-    api_features = get_api_features(current_time)
+    fliter_dp = df[df['street'] == street_name]
+    street_demand =  fliter_dp.loc[0, 'demand']
+
+    api_features = get_api_features(street_demand)
+    #print(api_features)
     if api_features is None:
         print("Failed to get API features.")
         return
