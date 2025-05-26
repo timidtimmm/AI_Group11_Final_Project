@@ -165,7 +165,7 @@ def main():
 
     # Save results to CSV
     results_df = pd.DataFrame(results)
-    results_df.to_csv("./model_street/LSTM_street_results_hoistorical.csv", index=False)
+    results_df.to_csv("./model_street/LSTM_street_results_historical.csv", index=False)
     print("\nResults saved to LSTM_street_results_hoistorical.csv")
 
 if __name__ == "__main__":
