@@ -75,7 +75,11 @@ def create_sequences(X, y, n_past):
 
 def main():
     # Load and preprocess dataset
-    df = pd.read_csv('/home/weichen/AI/project/AI_Group11_Final_Project/total_dataset_final.csv')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(base_dir)
+    csv_path = os.path.join(project_root, 'total_dataset_final.csv')
+    df = pd.read_csv(csv_path)
+    # df = pd.read_csv('../total_dataset_final.csv')
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
     df['Air_quality'] = pd.to_numeric(df['Air_quality'], errors='coerce').fillna(df['Air_quality'].mean())
@@ -105,7 +109,7 @@ def main():
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = LSTMModel(input_size=len(features), hidden_size=128, num_layers=2, dropout=0.1)
+    model = LSTMModel(input_size=len(features), hidden_size=128, num_layers=3, dropout=0.3)
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -117,11 +121,11 @@ def main():
     )
     train_losses = []
     print("Training...")
-    for epoch in range(20):
+    for epoch in range(30):
         model.train()
         epoch_loss = 0
         num_batches = 0
-        with tqdm(train_loader, desc=f"Epoch {epoch+1}/20") as pbar:
+        with tqdm(train_loader, desc=f"Epoch {epoch+1}/30") as pbar:
             for xb, yb in pbar:
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
@@ -138,7 +142,8 @@ def main():
     #save the model
     #Make sure the models directory exists
     os.makedirs("model_global_all", exist_ok=True)
-    torch.save(model.state_dict(), f"./model_global_all/LSTM_model_global_all.pth")
+    save_dir = os.path.join(base_dir)
+    torch.save(model.state_dict(), os.path.join(save_dir, 'LSTM_model_global_all.pth'))
     
     # Plot loss curve
     plt.figure()
@@ -164,7 +169,8 @@ def main():
         'True': y_true,
         'Predicted': y_pred
     })
-    pred_df.to_csv("LSTM_predictions_global_all.csv", index=False)
+    pred_df = pd.DataFrame({'True': y_true, 'Predicted': y_pred})
+    pred_df.to_csv(os.path.join(save_dir, 'LSTM_predictions_global_all.csv'), index=False)
     print("\nAll predictions saved to LSTM_predictions_global_all.csv")
 
     print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
