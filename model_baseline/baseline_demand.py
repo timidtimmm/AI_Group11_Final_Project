@@ -28,7 +28,7 @@ for street, group in df.groupby('street'):
     X_scaled = scaler.fit_transform(X)
 
     # 訓練、測試集
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size = 0.2, random_state=42)
 
     # 線性回歸
     model = LinearRegression()
@@ -47,4 +47,4 @@ for street, group in df.groupby('street'):
     joblib.dump(model, f"model_baseline/models_baseline_demand/{street}.pth")
 
 # 儲存結果
-pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("model_baseline/linear_regression_result_demand.csv", index = False)
+pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("model_baseline/linear_regression_results_demand.csv", index = False)
