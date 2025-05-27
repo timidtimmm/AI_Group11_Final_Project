@@ -34,10 +34,10 @@ Our dataset is compiled by collecting and integrating data from sources such as 
 #### Columns:
 ID,Boro,Date,Hour,weekday,volumn,segmentID,street,fromst,tost,Direction,temperature,precipitation,rain,cloudcover,windspeed,demand,Air_quality
 #### data source:
-[NYC traffic volumn counts from 2016 to 2022](https://data.cityofnewyork.us/Transportation/Traffic-Volume-Counts/btm5-ppia/about_data)
-[weather from 2016 to 2022](https://www.kaggle.com/datasets/aadimator/nyc-weather-2016-to-2022)
-[Pedestrian demand](https://data.cityofnewyork.us/Transportation/Pedestrian-Mobility-Plan-Pedestrian-Demand/fwpa-qxaf/about_data)
-[Air quality](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r/data_preview)
+[NYC traffic volumn counts from 2016 to 2022](https://data.cityofnewyork.us/Transportation/Traffic-Volume-Counts/btm5-ppia/about_data)  
+[weather from 2016 to 2022](https://www.kaggle.com/datasets/aadimator/nyc-weather-2016-to-2022)  
+[Pedestrian demand](https://data.cityofnewyork.us/Transportation/Pedestrian-Mobility-Plan-Pedestrian-Demand/fwpa-qxaf/about_data)  
+[Air quality](https://data.cityofnewyork.us/Environment/Air-Quality/c3uy-2p5r/data_preview)  
 [Traffic volumn](https://data.cityofnewyork.us/Transportation/Automated-Traffic-Volume-Counts/7ym2-wayt/data_preview)
 
 ## Model: Long Sort Term Memory(LSTM)
