@@ -32,7 +32,7 @@ In this project, we primarily focus on the traffic flow in New York City. By tra
 Our dataset is compiled by collecting and integrating data from sources such as Kaggle and publicly available government datasets. In this file, having roughly 377300 data, from 2016 to 2022. 
 
 #### Columns:
-ID,Boro,Date,Hour,weekday,volumn,segmentID,street,fromst,tost,Direction,temperature,precipitation,rain,cloudcover,windspeed,demand,Air_quality
+ID, Boro, Date, Hour, weekday, volumn, segmentID, street, fromst, tost, Direction, temperature, precipitation, rain, cloudcover, windspeed, demand,Air_quality
 #### data source:
 [NYC traffic volumn counts from 2016 to 2022](https://data.cityofnewyork.us/Transportation/Traffic-Volume-Counts/btm5-ppia/about_data)  
 [weather from 2016 to 2022](https://www.kaggle.com/datasets/aadimator/nyc-weather-2016-to-2022)  
