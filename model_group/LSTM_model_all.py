@@ -73,7 +73,7 @@ def create_sequences(X, y, n_past):
 #trsining by grouping with (boro, street) and using all the features
 def main():
     #load and preprocess dataset
-    df = pd.read_csv('total_dataset_final.csv')
+    df = pd.read_csv('../total_dataset_final.csv')
     df['Air_quality'] = pd.to_numeric(df['Air_quality'], errors='coerce').fillna(df['Air_quality'].mean())
     #convert string-based categorical columns into integers.
     categorical_cols = ['Boro', 'weekday', 'Direction', 'street']
