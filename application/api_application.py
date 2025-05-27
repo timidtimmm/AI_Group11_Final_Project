@@ -7,6 +7,7 @@ import torch
 import os
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import numpy as np
+from zoneinfo import ZoneInfo
 
 #LSTM cell
 class LSTMcell(torch.nn.Module):
@@ -150,7 +151,7 @@ def main():
     model.eval()
 
     # Get current time
-    current_time = datetime.now()
+    current_time = datetime.now(ZoneInfo("America/New_York"))
 
     # Get API features (shared for all 6 hours for simplicity, or you can update per hour if you have hourly forecast)
     fliter_dp = df[df['street'] == street_name]
@@ -168,7 +169,7 @@ def main():
     print(f"\nPredicted traffic for street '{street_name}' for the next 6 hours:")
     for i in range(6):
         future_time = current_time + timedelta(hours=i)
-        hour = (future_time.hour + 12) % 24        #turn to NYC time
+        hour = future_time.hour
         weekday = 1 if future_time.weekday() < 5 else 0  # 'Y'->1, 'N'->0
 
         # Compose feature vector
