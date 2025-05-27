@@ -17,6 +17,7 @@ features = ['Hour', 'weekday', 'temperature', 'precipitation', 'rain', 'cloudcov
 target = 'volumn'
 
 results = []
+predictions = []
 
 # train
 for street, group in df.groupby('street'):
@@ -44,7 +45,12 @@ for street, group in df.groupby('street'):
 
     results.append((street, r2, rmse, mae))
 
+    # 儲存預測資料
+    for true_val, pred_val in zip(y_test, y_pred):
+        predictions.append((street, true_val, pred_val))
+
     joblib.dump(model, f"model_baseline/models_baseline_weather/{street}.pth")
 
 # 儲存結果
 pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("model_baseline/linear_regression_results_weather.csv", index = False)
+pd.DataFrame(predictions, columns=["street", "True", "Predicted"]).to_csv("model_baseline/linear_regression_predict_weather.csv", index = False)
