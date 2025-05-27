@@ -59,7 +59,30 @@ def get_api_features(street_demand):
     headers = {
         'User-Agent': 'MyWeatherApp/1.0 tt121892185@gmail.com'
     }
-
+    url = "https://weather.googleapis.com/v1/currentConditions:lookup?key=AIzaSyAFrnN5eet3dLywq5B118mR9hWV-F4B8Vo&location.latitude=40.7304&location.longitude=-74.0537"
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        temperature = data["temperature"]["degrees"]
+        precipitation = data["precipitation"]["snowQpf"]["quantity"] + data["precipitation"]["qpf"]["quantity"]
+        rain = data["precipitation"]["qpf"]["quantity"]
+        cloudcover = data["cloudCover"]
+        windspeed = data["wind"]["speed"]["value"]
+    else:
+        print("error code:", response.status_code)
+        print("error message:", response.text)
+        return None
+    
+    url = "https://api.airvisual.com/v2/city?city=New%20York%20City&state=New%20York&country=USA&key=7fc1f886-e778-41c3-83c6-1daf90fb85a9" # replace with your key
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        air_quality = data['data']['current']['pollution']['aqius']
+    else:
+        print("error code:", response.status_code)
+        print("error message:", response.text)
+        return None
+    '''
     # Weather.gov API
     url = "https://api.weather.gov/gridpoints/OKX/31,35/forecast"
     response = requests.get(url, headers=headers)
@@ -76,7 +99,6 @@ def get_api_features(street_demand):
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
-        weather = data['data']['current']['weather']
         pollution = data['data']['current']['pollution']
     else:
         print("error code:", response.status_code)
@@ -101,8 +123,9 @@ def get_api_features(street_demand):
     cloudcover = cloud_coverage
     windspeed = weather['wd']
     air_quality = pollution['aqius']
+    '''    
     demand = street_demand  # If you have a way to estimate demand, set it here
-    
+
     return temperature, precipitation, rain, cloudcover, windspeed, air_quality, demand
     return 12, 2, 0, 16, 0, 17, np.int64(3)
 
