@@ -156,7 +156,7 @@ def main():
             
             # Collect all predictions and true values
             for yt, yp in zip(y_true, y_pred):
-                all_preds.append({'boro' : boro, 'street': street_name, 'True': yt, 'Predicted': yp})   
+                all_preds.append({'boro' : boro_name, 'street': street_name, 'True': yt, 'Predicted': yp})   
 
         print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
         results.append({'Boro': boro_name, 'street': street_name, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
