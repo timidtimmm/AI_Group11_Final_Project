@@ -8,7 +8,7 @@ import os
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import numpy as np
 
-# ======= Manual LSTM =======
+#LSTM cell
 class LSTMcell(torch.nn.Module):
     def __init__(self, input_size, hidden_size):
         super().__init__()
@@ -108,12 +108,12 @@ def get_api_features(street_demand):
 
 def main():
     # Load the dataset for encoders/scalers
-    df = pd.read_csv("../total_dataset_final.csv")
+    df = pd.read_csv("total_dataset_final.csv")
     features = ['Hour', 'weekday', 'temperature', 'precipitation', 'rain', 'cloudcover', 'windspeed', 'Air_quality', 'demand']
 
     # User input for street name
     street_name = input("Enter the street name: ").strip().upper()
-    model_dir = "../model_street/models_street_all"
+    model_dir = "./model_street/models_street_all"
     model_path = os.path.join(model_dir, f"LSTM_model_{street_name}.pth")
     if not os.path.exists(model_path):
         print(f"Model for street '{street_name}' not found.")
