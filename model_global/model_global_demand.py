@@ -105,9 +105,10 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(
         X_seq, y_seq, test_size=0.2, random_state=42, shuffle=True
     )
-
+    noise_std = 0.01  # Standard deviation of noise
+    X_train += np.random.normal(0, noise_std, X_train.shape)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = LSTMModel(input_size=len(features), hidden_size=256, num_layers=3, dropout=0.3)
+    model = LSTMModel(input_size=len(features), hidden_size=128, num_layers=3, dropout=0.3)
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
@@ -120,12 +121,16 @@ def main():
         batch_size=128, shuffle=True
     )
     train_losses = []
+    best_loss = float('inf')
+    patience = 5
+    wait = 0
+
     print("Training...")
-    for epoch in range(40):
+    for epoch in range(60):
         model.train()
         epoch_loss = 0
         num_batches = 0
-        with tqdm(train_loader, desc=f"Epoch {epoch+1}/40") as pbar:
+        with tqdm(train_loader, desc=f"Epoch {epoch+1}/60") as pbar:
             for xb, yb in pbar:
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
@@ -140,6 +145,14 @@ def main():
         train_losses.append(avg_loss)
         print(f"Epoch {epoch+1} Average Loss: {avg_loss:.4f}")
         scheduler.step(avg_loss)
+        if avg_loss < best_loss:
+            best_loss = avg_loss
+            wait = 0
+        else:
+            wait += 1
+            if wait >= patience:
+                print("Early stopping triggered.")
+                break
     #save the model
     #Make sure the models directory exists
     os.makedirs("model_global_demand", exist_ok=True)
