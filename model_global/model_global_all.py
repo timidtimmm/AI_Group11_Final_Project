@@ -125,7 +125,7 @@ def main():
         model.train()
         epoch_loss = 0
         num_batches = 0
-        with tqdm(train_loader, desc=f"Epoch {epoch+1}/30") as pbar:
+        with tqdm(train_loader, desc=f"Epoch {epoch+1}/20") as pbar:
             for xb, yb in pbar:
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
