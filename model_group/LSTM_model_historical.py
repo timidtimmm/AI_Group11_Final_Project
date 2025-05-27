@@ -101,7 +101,7 @@ def main():
     df['Boro_street'] = df['Boro'].astype(str) + "_" + df['street'].astype(str)
     grouped = df.groupby('Boro_street')
     results = []
-
+    all_preds = []
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     for name, group in grouped:                     #train group by group
@@ -152,6 +152,10 @@ def main():
             val_rmse = root_mean_squared_error(y_true, y_pred)
             val_mae = np.mean(np.abs(y_true - y_pred))
             val_r2 = r2_score(y_true, y_pred)
+            
+            # Collect all predictions and true values
+            for yt, yp in zip(y_true, y_pred):
+                all_preds.append({'boro' : boro_name, 'street': street_name, 'True': yt, 'Predicted': yp})
 
         print(f"Final Validation RMSE: {val_rmse:.4f}, MAE: {val_mae:.4f}, R2: {val_r2:.4f}")
         results.append({'Boro': boro_name, 'street': street_name, 'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2})
@@ -162,12 +166,15 @@ def main():
         joblib.dump(scaler, f"./model_group/models_group_historical/scaler_x_{boro_name}_{street_name}.pkl")
         joblib.dump(target_scaler, f"./model_group/models_group_historical/scaler_y_{boro_name}_{street_name}.pkl")
 
-
-
     # Save results to CSV
     results_df = pd.DataFrame(results)
     results_df.to_csv("./model_group/LSTM_group_results_historical.csv", index=False)
     print("\nResults saved to LSTM_group_results_historical.csv")
+            
+    # Save all predictions to CSV
+    all_preds_df = pd.DataFrame(all_preds)
+    all_preds_df.to_csv("./model_group/LSTM_group_predict_historical.csv", index=False)
+    print("All true and predicted values saved to LSTM_group_predict_historical.csv")
 
 if __name__ == "__main__":
     main()
