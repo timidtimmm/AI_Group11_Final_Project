@@ -109,10 +109,13 @@ def main():
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = LSTMModel(input_size=len(features), hidden_size=128, num_layers=3, dropout=0.3)
+    model = LSTMModel(input_size=len(features), hidden_size=256, num_layers=3, dropout=0.3)
     model.to(device)
     criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='min', factor=0.5, patience=3
+)
 
     train_loader = DataLoader(
         TensorDataset(torch.tensor(X_train, dtype=torch.float32).to(device),
@@ -121,11 +124,11 @@ def main():
     )
     train_losses = []
     print("Training...")
-    for epoch in range(30):
+    for epoch in range(40):
         model.train()
         epoch_loss = 0
         num_batches = 0
-        with tqdm(train_loader, desc=f"Epoch {epoch+1}/20") as pbar:
+        with tqdm(train_loader, desc=f"Epoch {epoch+1}/40") as pbar:
             for xb, yb in pbar:
                 xb, yb = xb.to(device), yb.to(device)
                 optimizer.zero_grad()
@@ -139,6 +142,8 @@ def main():
         avg_loss = epoch_loss / num_batches
         train_losses.append(avg_loss)
         print(f"Epoch {epoch+1} Average Loss: {avg_loss:.4f}")
+        scheduler.step(avg_loss)
+
     #save the model
     #Make sure the models directory exists
     os.makedirs("model_global_all", exist_ok=True)
@@ -151,8 +156,10 @@ def main():
     plt.xlabel('Epoch')
     plt.ylabel('Training Loss')
     plt.title('Training Loss Curve (all features)')
-    plt.savefig('training_loss_global_all.png')
+    save_path = os.path.join(base_dir, 'training_loss_global_all.png')
+    plt.savefig(save_path)
     plt.show()
+    plt.close()
     # Validation
     model.eval()
     with torch.no_grad():
@@ -177,7 +184,7 @@ def main():
 
     # Save results to CSV
     results_df = pd.DataFrame([{'RMSE': val_rmse, 'MAE': val_mae, 'R2': val_r2}])
-    results_df.to_csv("LSTM_results_global_all.csv", index=False)
+    results_df.to_csv(os.path.join(save_dir, 'LSTM_results_global_all.csv'), index=False)
     print("\nResults saved to LSTM_results_global_all.csv")
 
 if __name__ == "__main__":
