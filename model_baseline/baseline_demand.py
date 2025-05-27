@@ -1,5 +1,3 @@
-## linear regression + 分組 train
-
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
@@ -17,6 +15,7 @@ features = ['Hour', 'weekday', 'demand']
 target = 'volumn'
 
 results = []
+predictions = []
 
 # train
 for street, group in df.groupby('street'):
@@ -44,7 +43,12 @@ for street, group in df.groupby('street'):
 
     results.append((street, r2, rmse, mae))
 
+    # 儲存預測資料
+    for true_val, pred_val in zip(y_test, y_pred):
+        predictions.append((street, true_val, pred_val))
+
     joblib.dump(model, f"model_baseline/models_baseline_demand/{street}.pth")
 
 # 儲存結果
 pd.DataFrame(results, columns=["street", "R2", "RMSE", "MAE"]).to_csv("model_baseline/linear_regression_results_demand.csv", index = False)
+pd.DataFrame(predictions, columns=["street", "True", "Predicted"]).to_csv("model_baseline/linear_regression_predict_demand.csv", index = False)
