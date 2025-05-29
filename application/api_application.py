@@ -83,48 +83,7 @@ def get_api_features(street_demand):
         print("error code:", response.status_code)
         print("error message:", response.text)
         return None
-    '''
-    # Weather.gov API
-    url = "https://api.weather.gov/gridpoints/OKX/31,35/forecast"
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        forecast_current = data['properties']['periods'][0]
-    else:
-        print("error code:", response.status_code)
-        print("error message:", response.text)
-        return None
 
-    # AirVisual API
-    url = "https://api.airvisual.com/v2/city?city=New%20York%20City&state=New%20York&country=USA&key=7fc1f886-e778-41c3-83c6-1daf90fb85a9" # replace with your key
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        pollution = data['data']['current']['pollution']
-    else:
-        print("error code:", response.status_code)
-        print("error message:", response.text)
-        return None
-
-    # Meteosource API
-    url = "https://www.meteosource.com/api/v1/free/point?place_id=new-york-city&sections=current%2Chourly&language=en&units=auto&key=8ppm5ny2p15frup7z246w12yylk4qsentwt2wrco"
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        cloud = response.json()
-        cloud_coverage = cloud['current']["cloud_cover"]
-    else:
-        print("error code:", response.status_code)
-        print("error message:", response.text)
-        return None
-
-    # Prepare input features (match training preprocessing)
-    temperature = weather['tp']
-    precipitation = forecast_current['probabilityOfPrecipitation']['value']
-    rain = 1 if precipitation == 100 else 0  # 'Y'->1, 'N'->0
-    cloudcover = cloud_coverage
-    windspeed = weather['wd']
-    air_quality = pollution['aqius']
-    '''    
     demand = street_demand  # If you have a way to estimate demand, set it here
 
     return temperature, precipitation, rain, cloudcover, windspeed, air_quality, demand
