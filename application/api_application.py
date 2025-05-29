@@ -58,9 +58,9 @@ class LSTMModel(torch.nn.Module):
 
 def get_api_features(street_demand):
     headers = {
-        'User-Agent': 'MyWeatherApp/1.0 tt121892185@gmail.com'
+        'User-Agent': '{YOUR_INFOMATION} {YOUR_EMAIL}'
     }
-    url = "https://weather.googleapis.com/v1/currentConditions:lookup?key=AIzaSyAFrnN5eet3dLywq5B118mR9hWV-F4B8Vo&location.latitude=40.7304&location.longitude=-74.0537"
+    url = "https://weather.googleapis.com/v1/currentConditions:lookup?key={YOUR_APIKEY}&location.latitude=40.7304&location.longitude=-74.0537"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -74,7 +74,7 @@ def get_api_features(street_demand):
         print("error message:", response.text)
         return None
     
-    url = "https://api.airvisual.com/v2/city?city=New%20York%20City&state=New%20York&country=USA&key=7fc1f886-e778-41c3-83c6-1daf90fb85a9" # replace with your key
+    url = "https://api.airvisual.com/v2/city?city=New%20York%20City&state=New%20York&country=USA&key={YOUR_APIKEY}" # replace with your key
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -87,7 +87,6 @@ def get_api_features(street_demand):
     demand = street_demand  # If you have a way to estimate demand, set it here
 
     return temperature, precipitation, rain, cloudcover, windspeed, air_quality, demand
-    return 12, 2, 0, 16, 0, 17, np.int64(3)
 
 def main():
     # Load the dataset for encoders/scalers
