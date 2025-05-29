@@ -12,3 +12,8 @@ value_counts = df[target_column].value_counts()
 
 # === Step 4: Display the result ===
 print(value_counts)
+
+# === Step 5: Save the result to a new CSV file (optional) ===
+results_df = pd.DataFrame(value_counts).reset_index()
+results_df.columns = [target_column, 'count']
+results_df.to_csv('street_value_counts.csv', index=False)  # Save to a new CSV file
