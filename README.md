@@ -415,7 +415,6 @@ WESTCHESTER AVENUE BRIDGE
 WHITE PLAINS ROAD
 WOODHAVEN BOULEVARD
 YORK AVENUE
-
 :::
 The final result is like that
 ![image](https://hackmd.io/_uploads/ryjHizQGex.png)
