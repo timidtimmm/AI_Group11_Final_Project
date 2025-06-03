@@ -233,7 +233,7 @@ url =  "https://api.airvisual.com/v2/city?city=New%20York%20City&state=New%20Yor
 ```
 For using our system, user must to enter the correct street. If user enter the street not in NYC, our system will print error. 
 <details>
-<summary> spoiler the valid street list </summary>
+<summary> the valid street list </summary>
 1 AVENUE<br>
 10 AVENUE<br>
 11 AVENUE<br>
