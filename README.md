@@ -416,5 +416,6 @@ WHITE PLAINS ROAD <br>
 WOODHAVEN BOULEVARD <br>
 YORK AVENUE <br>
 </details>
+
 The final result is like that
 ![image](https://hackmd.io/_uploads/ryjHizQGex.png)
